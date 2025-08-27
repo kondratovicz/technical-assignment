@@ -14,6 +14,3 @@ location = "West Europe"
 1. terraform init
 2. terraform plan
 3. terraform apply
-
-TODO:
-Replace hardcoded values to variables.tf
