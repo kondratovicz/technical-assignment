@@ -1,38 +1,45 @@
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.name_prefix}-network"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
   address_space       = ["10.254.0.0/16"]
 }
 
-resource "azurerm_subnet" "example" {
-  name                 = "example"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.254.0.0/24"]
+resource "azurerm_subnet" "aca" {
+  name                 = "${var.name_prefix}-subnet"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.254.0.0/21"]
 }
 
-resource "azurerm_public_ip" "example" {
-  name                = "example-pip"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+resource "azurerm_subnet" "appgw" {
+  name                 = "${var.name_prefix}-subnet"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.254.8.0/21"]
+}
+
+resource "azurerm_public_ip" "main" {
+  name                = "${var.name_prefix}-pip"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
   allocation_method   = "Static"
 }
 
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.example.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.example.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.example.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.example.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.example.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.example.name}-rqrt"
-  redirect_configuration_name    = "${azurerm_virtual_network.example.name}-rdrcfg"
+  backend_address_pool_name      = "${azurerm_virtual_network.main.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.main.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.main.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.main.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.main.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.main.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.main.name}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "network" {
-  name                = "example-appgateway"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                = "${var.name_prefix}-appgateway"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
 
   sku {
     name     = "Standard_v2"
@@ -42,7 +49,7 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.example.id
+    subnet_id = azurerm_subnet.appgw.id
   }
 
   frontend_port {
@@ -52,17 +59,18 @@ resource "azurerm_application_gateway" "network" {
 
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.example.id
+    public_ip_address_id = azurerm_public_ip.main.id
   }
 
   backend_address_pool {
     name = local.backend_address_pool_name
+    fqdns = toset([module.frontend.container_fqdn])
   }
 
   backend_http_settings {
     name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
-    path                  = "/path1/"
+    path                  = "/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 60

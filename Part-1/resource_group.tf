@@ -1,4 +1,4 @@
-resource "azurerm_resource_group" "example" {
-  name     = "assignment-rg"
-  location = "West Europe"
+resource "azurerm_resource_group" "main" {
+  name     = "${var.name_prefix}-rg"
+  location = var.location
 }
