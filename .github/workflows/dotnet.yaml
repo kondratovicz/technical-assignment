@@ -25,10 +25,12 @@ jobs:
           dotnet restore ./Part-2/tests/app.tests/app.test.csproj
       
     - name: Build
-      run: dotnet build --no-restore
+      run: |
+        dotnet build ./Part-2/src/app/app.csproj --no-restore
+        dotnet build ./Part-2/tests/app.tests/app.test.csproj --no-restore
       
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test ./Part-2/tests/app.tests/app.test.csproj --no-build --verbosity normal
 
   docker-build:
     needs: build-and-test
