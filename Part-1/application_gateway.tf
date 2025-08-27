@@ -6,14 +6,14 @@ resource "azurerm_virtual_network" "main" {
 }
 
 resource "azurerm_subnet" "aca" {
-  name                 = "${var.name_prefix}-subnet"
+  name                 = "${var.name_prefix}-aca-subnet"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.254.0.0/21"]
 }
 
 resource "azurerm_subnet" "appgw" {
-  name                 = "${var.name_prefix}-subnet"
+  name                 = "${var.name_prefix}-appgw-subnet"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.254.8.0/21"]
