@@ -21,8 +21,8 @@ jobs:
         
     - name: Restore dependencies
       run: |
-          dotnet restore Part-2/src/app/app.csproj
-          dotnet restore Part-2/tests/app.tests/app.test.csproj
+          dotnet restore ./Part-2/src/app/app.csproj
+          dotnet restore ./Part-2/tests/app.tests/app.test.csproj
       
     - name: Build
       run: dotnet build --no-restore
